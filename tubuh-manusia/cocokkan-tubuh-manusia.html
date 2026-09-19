@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cocokkan – Tubuh Manusia</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0FBF4;
+    --card: #FFFFFF;
+    --primary: #2E9E6B;
+    --primary-dark: #1E7A50;
+    --primary-light: #D6F5E7;
+    --accent: #F9A825;
+    --accent-light: #FFF8E1;
+    --selected-organ: #1565C0;
+    --selected-organ-bg: #E3F2FD;
+    --selected-organ-border: #42A5F5;
+    --selected-func: #6A1B9A;
+    --selected-func-bg: #F3E5F5;
+    --selected-func-border: #AB47BC;
+    --matched: #2E9E6B;
+    --matched-bg: #D6F5E7;
+    --matched-border: #2E9E6B;
+    --wrong: #C62828;
+    --wrong-bg: #FFEBEE;
+    --wrong-border: #EF5350;
+    --text: #1A3A2A;
+    --text-soft: #5A7A6A;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(46,158,107,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .game-emoji {
+    font-size: 50px;
+    display: block;
+    margin-bottom: 6px;
+    animation: wiggle 3s infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 90%, 100% { transform: rotate(0deg); }
+    93% { transform: rotate(-8deg); }
+    96% { transform: rotate(8deg); }
+  }
+
+  h1 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Score & progress */
+  .hud {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 6px 16px;
+    border-radius: 99px;
+  }
+
+  .badge-score {
+    background: var(--accent-light);
+    border: 2px solid var(--accent);
+    color: #7A5200;
+  }
+
+  .badge-progress {
+    background: var(--primary-light);
+    border: 2px solid var(--primary);
+    color: var(--primary-dark);
+  }
+
+  /* Instruction */
+  .instruction {
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 18px;
+    background: white;
+    border-radius: 10px;
+    padding: 8px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  /* Game grid */
+  .game-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 20px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .col-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-soft);
+    text-align: center;
+    margin-bottom: 2px;
+  }
+
+  #organs-col, #funcs-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  }
+
+  /* Item tiles */
+  .item {
+    padding: 11px 14px;
+    border-radius: 14px;
+    border: 2.5px solid transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.12s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    background: white;
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    user-select: none;
+    line-height: 1.3;
+  }
+
+#organs-col .item:not(.matched):not(.selected-organ) {
+  background: #FFEBEE;
+  color: #B71C1C;
+  border-color: #EF9A9A;
+}
+
+#funcs-col .item:not(.matched) {
+  background: #E3F2FD;
+  color: #0D47A1;
+  border-color: #90CAF9;
+}
+
+  .item:hover:not(.matched):not(.wrong-flash) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(0,0,0,0.11);
+  }
+
+  .item.selected-organ {
+  background: #FFB300;
+  border-color: #FF8F00;
+  color: #FFF8E1;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(255,179,0,0.35);
+  }
+
+  .item.selected-func {
+    background: var(--selected-func-bg);
+    border-color: var(--selected-func-border);
+    color: var(--selected-func);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(106,27,154,0.18);
+  }
+
+  .item.matched {
+    background: var(--matched-bg);
+    border-color: var(--matched-border);
+    color: var(--matched);
+    cursor: default;
+    opacity: 0.75;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .item.wrong-flash {
+    background: var(--wrong-bg);
+    border-color: var(--wrong-border);
+    color: var(--wrong);
+    animation: shake 0.35s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  /* Feedback toast */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: white;
+    border-radius: 14px;
+    padding: 12px 24px;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.correct { color: var(--matched); border: 2px solid var(--matched); }
+  .toast.wrong { color: var(--wrong); border: 2px solid var(--wrong); }
+
+  /* Win screen */
+  .win-screen {
+    display: none;
+    text-align: center;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 28px;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .win-screen.show { display: block; }
+
+  .win-emoji {
+    font-size: 64px;
+    display: block;
+    animation: pop 0.5s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .win-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+    margin: 12px 0 6px;
+  }
+
+  .win-sub {
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .final-score {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  .btn-restart {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #0E5C39;
+    padding: 14px 36px;
+    font-size: 1.05rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+  }
+
+  .btn-restart:active { transform: scale(0.97); }
+  .btn-restart:hover { filter: brightness(1.07); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="game-emoji">🔗</span>
+  <h1>Cocokkan!</h1>
+  <p class="subtitle">Tema: Tubuh Manusia</p>
+</header>
+
+<div class="hud">
+  <div class="badge badge-score">⭐ Skor: <span id="score">0</span></div>
+  <div class="badge badge-progress">✅ <span id="matched-count">0</span> / <span id="total">10</span> pasang</div>
+</div>
+
+<div class="instruction">Klik nama organ, lalu klik fungsinya!</div>
+
+<div class="game-grid" id="game-grid">
+  <div class="col">
+    <div class="col-label">Organ Tubuh</div>
+    <div id="organs-col"></div>
+  </div>
+  <div class="col">
+    <div class="col-label">Fungsinya</div>
+    <div id="funcs-col"></div>
+  </div>
+</div>
+
+<div class="win-screen" id="win-screen">
+  <span class="win-emoji">🎉</span>
+  <div class="win-title">Semua cocok!</div>
+  <div class="win-sub">Kamu tahu semua fungsi organ tubuh!</div>
+  <div class="final-score" id="final-score"></div>
+  <button class="btn-restart" onclick="restartGame()">🔁 Main Lagi</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const pairs = [
+  { organ: "Otak",      func: "Berpikir" },
+  { organ: "Mata",      func: "Melihat" },
+  { organ: "Hidung",    func: "Cium Bau" },
+  { organ: "Telinga",   func: "Mendengar" },
+  { organ: "Lidah",     func: "Mengenali Rasa" },
+  { organ: "Gigi",      func: "Gigit & Kunyah" },
+  { organ: "Tangan",    func: "Memegang" },
+  { organ: "Jantung",   func: "Pompa Darah" },
+  { organ: "Paru-Paru", func: "Bernapas" },
+  { organ: "Kaki",      func: "Berjalan" },
+];
+
+let selectedOrgan = null;
+let selectedFunc = null;
+let matchedCount = 0;
+let score = 0;
+let toastTimer = null;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+  matchedCount = 0;
+  score = 0;
+  selectedOrgan = null;
+  selectedFunc = null;
+
+  document.getElementById('score').textContent = 0;
+  document.getElementById('matched-count').textContent = 0;
+  document.getElementById('total').textContent = pairs.length;
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('game-grid').style.display = '';
+
+  const shuffledOrgans = shuffle(pairs.map((p, i) => ({ ...p, id: i })));
+  const shuffledFuncs  = shuffle(pairs.map((p, i) => ({ ...p, id: i })));
+
+  const organsCol = document.getElementById('organs-col');
+  const funcsCol  = document.getElementById('funcs-col');
+  organsCol.innerHTML = '';
+  funcsCol.innerHTML  = '';
+
+  shuffledOrgans.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.textContent = p.organ;
+    el.dataset.id = p.id;
+    el.dataset.type = 'organ';
+    el.addEventListener('click', () => handleClick(el, 'organ'));
+    organsCol.appendChild(el);
+  });
+
+  shuffledFuncs.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.textContent = p.func;
+    el.dataset.id = p.id;
+    el.dataset.type = 'func';
+    el.addEventListener('click', () => handleClick(el, 'func'));
+    funcsCol.appendChild(el);
+  });
+}
+
+function handleClick(el, type) {
+  if (el.classList.contains('matched')) return;
+
+  if (type === 'organ') {
+    // Deselect previous organ
+    if (selectedOrgan) selectedOrgan.classList.remove('selected-organ');
+    if (selectedOrgan === el) { selectedOrgan = null; return; }
+    selectedOrgan = el;
+    el.classList.add('selected-organ');
+  } else {
+    // Deselect previous func
+    if (selectedFunc) selectedFunc.classList.remove('selected-func');
+    if (selectedFunc === el) { selectedFunc = null; return; }
+    selectedFunc = el;
+    el.classList.add('selected-func');
+  }
+
+  if (selectedOrgan && selectedFunc) {
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  const organId = parseInt(selectedOrgan.dataset.id);
+  const funcId  = parseInt(selectedFunc.dataset.id);
+
+  if (organId === funcId) {
+    // Correct!
+    selectedOrgan.classList.remove('selected-organ');
+    selectedFunc.classList.remove('selected-func');
+    selectedOrgan.classList.add('matched');
+    selectedFunc.classList.add('matched');
+
+    matchedCount++;
+    score += 10;
+    document.getElementById('score').textContent = score;
+    document.getElementById('matched-count').textContent = matchedCount;
+
+    showToast('Benar! 🎉', 'correct');
+
+    selectedOrgan = null;
+    selectedFunc  = null;
+
+    if (matchedCount === pairs.length) {
+      setTimeout(showWin, 700);
+    }
+  } else {
+    // Wrong
+    const o = selectedOrgan;
+    const f = selectedFunc;
+    o.classList.remove('selected-organ');
+    f.classList.remove('selected-func');
+    o.classList.add('wrong-flash');
+    f.classList.add('wrong-flash');
+
+    showToast('Belum tepat, coba lagi! 💪', 'wrong');
+
+    setTimeout(() => {
+      o.classList.remove('wrong-flash');
+      f.classList.remove('wrong-flash');
+    }, 400);
+
+    selectedOrgan = null;
+    selectedFunc  = null;
+  }
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+function showWin() {
+  document.getElementById('game-grid').style.display = 'none';
+  const win = document.getElementById('win-screen');
+  win.classList.add('show');
+  const pct = Math.round((score / (pairs.length * 10)) * 100);
+  const emoji = pct === 100 ? '🏆' : '🥈';
+  document.getElementById('final-score').textContent = `${emoji} ${score} poin`;
+}
+
+function restartGame() {
+  startGame();
+}
+
+startGame();
+</script>
+</body>
+</html>

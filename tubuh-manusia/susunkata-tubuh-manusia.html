@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Susun Kata – Tubuh Manusia</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EEF6FF;
+    --card: #FFFFFF;
+    --primary: #4A90D9;
+    --primary-dark: #2F72B8;
+    --accent: #FF7043;
+    --accent-light: #FFF3F0;
+    --green: #43A047;
+    --green-light: #E8F5E9;
+    --red: #E53935;
+    --red-light: #FFEBEE;
+    --yellow: #FFB300;
+    --yellow-light: #FFF8E1;
+    --text: #1A2B4A;
+    --text-soft: #5A6A80;
+    --radius: 18px;
+    --shadow: 0 4px 20px rgba(74,144,217,0.13);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .game-emoji {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 6px;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+    line-height: 1.1;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--text-soft);
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 20px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 10px;
+    background: #D6E9FF;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #7EC8FF);
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  /* Score */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--yellow-light);
+    border: 2px solid var(--yellow);
+    color: #7A5200;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 6px 16px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .clue-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-soft);
+    margin-bottom: 8px;
+  }
+
+  .clue-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+
+  /* Scrambled letters */
+  .scramble-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .letter-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 22px;
+    min-height: 52px;
+  }
+
+  .letter-tile {
+    width: 46px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s, opacity 0.2s;
+    border: none;
+    outline: none;
+  }
+
+  .letter-tile:active { transform: scale(0.92); }
+
+  .letter-tile.pool-tile {
+    background: #E3F0FF;
+    color: var(--primary-dark);
+    box-shadow: 0 3px 0 #A8CFEE;
+  }
+
+  .letter-tile.pool-tile:hover { background: #C8E0FF; }
+  .letter-tile.pool-tile.used { opacity: 0.3; pointer-events: none; }
+
+  /* Answer slots */
+  .answer-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .answer-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 52px;
+    margin-bottom: 22px;
+  }
+
+  .answer-slot {
+    width: 46px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    border-radius: 12px;
+    border: 2.5px dashed #A8CFEE;
+    color: var(--primary-dark);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .answer-slot.filled {
+    background: #E3F0FF;
+    border-style: solid;
+    border-color: var(--primary);
+  }
+
+  .answer-slot.correct-letter {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .answer-slot.wrong-letter {
+    background: var(--red-light);
+    border-color: var(--red);
+    color: var(--red);
+    animation: shake 0.3s;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #1A5A9A;
+  }
+
+  .btn-primary:hover { filter: brightness(1.06); }
+
+  .btn-ghost {
+    background: #E3F0FF;
+    color: var(--primary-dark);
+    box-shadow: 0 4px 0 #A8CFEE;
+  }
+
+  .btn-ghost:hover { background: #C8E0FF; }
+
+  /* Feedback */
+  .feedback {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--green-light); color: var(--green); }
+  .feedback.wrong { background: var(--red-light); color: var(--red); }
+
+  /* Win screen */
+  .win-screen {
+    display: none;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .win-screen.show { display: block; }
+
+  .win-emoji {
+    font-size: 64px;
+    display: block;
+    animation: pop 0.5s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .win-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+    margin: 10px 0 6px;
+  }
+
+  .win-sub {
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .final-score {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--yellow);
+    margin-bottom: 20px;
+  }
+
+  .btn-restart {
+    background: linear-gradient(135deg, var(--accent), #FF5722);
+    color: white;
+    box-shadow: 0 4px 0 #BF360C;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-restart:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="game-emoji">🧩</span>
+  <h1>Susun Kata</h1>
+  <p class="subtitle">Tema: Tubuh Manusia</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span id="progress-text">Soal 1 dari 10</span>
+    <span id="correct-count">✅ 0 benar</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:10%"></div>
+  </div>
+</div>
+
+<div class="score-badge">⭐ Skor: <span id="score">0</span></div>
+
+<div class="card" id="game-card">
+  <div class="clue-label">Petunjuk</div>
+  <div class="clue-text" id="clue-text"></div>
+
+  <div class="scramble-label">Huruf-huruf acak — klik untuk menyusun!</div>
+  <div class="letter-pool" id="letter-pool"></div>
+
+  <div class="answer-label">Susunanmu</div>
+  <div class="answer-slots" id="answer-slots"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="clearAnswer()">🔄 Ulang</button>
+    <button class="btn btn-primary" onclick="checkAnswer()">✔ Cek Jawaban</button>
+  </div>
+</div>
+
+<div class="card win-screen" id="win-screen">
+  <span class="win-emoji">🎉</span>
+  <div class="win-title">Hebat sekali!</div>
+  <div class="win-sub">Kamu sudah menyelesaikan semua soal!</div>
+  <div class="final-score" id="final-score"></div>
+  <button class="btn-restart" onclick="restartGame()">🔁 Main Lagi</button>
+</div>
+
+<script>
+const words = [
+  { word: "JANTUNG", clue: "Organ yang memompa darah ke seluruh tubuh. Letaknya di dada dan berdetak terus-menerus." },
+  { word: "OTAK",    clue: "Pusat kendali tubuh kita. Dipakai untuk berpikir, mengingat, dan merasakan." },
+  { word: "LIDAH",   clue: "Organ di dalam mulut untuk merasakan rasa makanan seperti manis, asin, dan pahit." },
+  { word: "TULANG",  clue: "Kerangka keras yang menyangga tubuh kita agar bisa berdiri tegak." },
+  { word: "SENDI",   clue: "Penghubung antara dua tulang sehingga kita bisa menekuk dan menggerakkan tubuh." },
+  { word: "GINJAL",  clue: "Organ berbentuk seperti kacang yang membersihkan darah dan menghasilkan air kencing." },
+  { word: "HIDUNG",  clue: "Organ untuk mencium bau dan menghirup udara agar bisa bernapas." },
+  { word: "TELINGA", clue: "Organ yang digunakan untuk mendengar berbagai macam suara di sekitar kita." },
+  { word: "LAMBUNG", clue: "Kantong di dalam perut yang mencerna makanan setelah kita makan." },
+  { word: "USUS",    clue: "Organ panjang yang menyerap sari makanan dan mengeluarkan sisa pencernaan." },
+];
+
+let shuffled = [];
+let current = 0;
+let score = 0;
+let correctCount = 0;
+let answer = [];
+let usedIndices = [];
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function scrambleWord(word) {
+  let letters = word.split('');
+  let scrambled;
+  do { scrambled = shuffle(letters); }
+  while (scrambled.join('') === word && word.length > 1);
+  return scrambled;
+}
+
+function startGame() {
+  shuffled = shuffle(words);
+  current = 0;
+  score = 0;
+  correctCount = 0;
+  document.getElementById('score').textContent = score;
+  document.getElementById('correct-count').textContent = '✅ 0 benar';
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('game-card').style.display = '';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answer = [];
+  usedIndices = [];
+
+  const q = shuffled[current];
+  const scrambled = scrambleWord(q.word);
+
+  document.getElementById('clue-text').textContent = q.clue;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+
+  // Progress
+  const num = current + 1;
+  document.getElementById('progress-text').textContent = `Soal ${num} dari ${words.length}`;
+  document.getElementById('progress-fill').style.width = `${(num / words.length) * 100}%`;
+
+  // Letter pool
+  const pool = document.getElementById('letter-pool');
+  pool.innerHTML = '';
+  scrambled.forEach((letter, i) => {
+    const tile = document.createElement('button');
+    tile.className = 'letter-tile pool-tile';
+    tile.textContent = letter;
+    tile.dataset.index = i;
+    tile.addEventListener('click', () => pickLetter(i, letter, tile));
+    pool.appendChild(tile);
+  });
+
+  // Answer slots
+  const slots = document.getElementById('answer-slots');
+  slots.innerHTML = '';
+  for (let i = 0; i < q.word.length; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'answer-slot';
+    slot.dataset.pos = i;
+    slot.addEventListener('click', () => removeLetter(i));
+    slots.appendChild(slot);
+  }
+}
+
+function pickLetter(poolIndex, letter, tile) {
+  if (usedIndices.includes(poolIndex)) return;
+  const q = shuffled[current];
+  if (answer.length >= q.word.length) return;
+
+  usedIndices.push(poolIndex);
+  tile.classList.add('used');
+
+  const pos = answer.length;
+  answer.push({ letter, poolIndex });
+
+  const slot = document.querySelector(`.answer-slot[data-pos="${pos}"]`);
+  slot.textContent = letter;
+  slot.classList.add('filled');
+  slot.dataset.poolIndex = poolIndex;
+}
+
+function removeLetter(pos) {
+  if (pos >= answer.length) return;
+
+  // Remove from this position onward (LIFO from this pos)
+  const removed = answer.splice(pos);
+  removed.forEach(item => {
+    const tile = document.querySelector(`.pool-tile[data-index="${item.poolIndex}"]`);
+    if (tile) tile.classList.remove('used');
+    usedIndices = usedIndices.filter(i => i !== item.poolIndex);
+  });
+
+  // Re-render slots from pos
+  const q = shuffled[current];
+  for (let i = pos; i < q.word.length; i++) {
+    const slot = document.querySelector(`.answer-slot[data-pos="${i}"]`);
+    if (i < answer.length) {
+      slot.textContent = answer[i].letter;
+      slot.classList.add('filled');
+    } else {
+      slot.textContent = '';
+      slot.classList.remove('filled', 'correct-letter', 'wrong-letter');
+    }
+  }
+}
+
+function clearAnswer() {
+  const q = shuffled[current];
+  answer = [];
+  usedIndices = [];
+
+  document.querySelectorAll('.pool-tile').forEach(t => t.classList.remove('used'));
+  for (let i = 0; i < q.word.length; i++) {
+    const slot = document.querySelector(`.answer-slot[data-pos="${i}"]`);
+    slot.textContent = '';
+    slot.className = 'answer-slot';
+  }
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function checkAnswer() {
+  const q = shuffled[current];
+  if (answer.length < q.word.length) {
+    showFeedback('Lengkapi dulu semua hurufnya! 😊', 'wrong');
+    return;
+  }
+
+  const userWord = answer.map(a => a.letter).join('');
+  const correct = userWord === q.word;
+
+  // Color each slot
+  for (let i = 0; i < q.word.length; i++) {
+    const slot = document.querySelector(`.answer-slot[data-pos="${i}"]`);
+    slot.classList.remove('filled');
+    slot.classList.add(correct ? 'correct-letter' : 'wrong-letter');
+  }
+
+  if (correct) {
+    score += 10;
+    correctCount++;
+    document.getElementById('score').textContent = score;
+    document.getElementById('correct-count').textContent = `✅ ${correctCount} benar`;
+    showFeedback('Benar! Keren sekali! 🎉', 'correct');
+    setTimeout(nextQuestion, 1400);
+  } else {
+    showFeedback(`Belum tepat. Jawabannya: ${q.word} 💪`, 'wrong');
+    setTimeout(nextQuestion, 2000);
+  }
+}
+
+function showFeedback(msg, type) {
+  const fb = document.getElementById('feedback');
+  fb.textContent = msg;
+  fb.className = `feedback show ${type}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= words.length) {
+    showWinScreen();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showWinScreen() {
+  document.getElementById('game-card').style.display = 'none';
+  const win = document.getElementById('win-screen');
+  win.classList.add('show');
+
+  const pct = Math.round((correctCount / words.length) * 100);
+  let emoji = pct === 100 ? '🏆' : pct >= 70 ? '🥈' : '🎖️';
+  document.getElementById('final-score').textContent = `${emoji} ${score} poin (${correctCount}/${words.length} benar)`;
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-text').textContent = `Selesai!`;
+}
+
+function restartGame() {
+  startGame();
+}
+
+startGame();
+</script>
+</body>
+</html>
