@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Juz Amma – Medium</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card: #FFFFFF;
+    --primary: #F4A225;
+    --primary-dark: #C47D0A;
+    --primary-light: #FFF0D4;
+    --accent: #E07B10;
+    --correct: #2E9E6B;
+    --correct-bg: #D6F5E7;
+    --correct-border: #2E9E6B;
+    --wrong: #C62828;
+    --wrong-bg: #FFEBEE;
+    --wrong-border: #EF5350;
+    --text: #3A2800;
+    --text-soft: #8A6A30;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(244,162,37,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 16px 28px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .game-emoji {
+    font-size: 38px;
+    display: block;
+    margin-bottom: 4px;
+    animation: wiggle 3s infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 90%, 100% { transform: rotate(0deg); }
+    93%  { transform: rotate(-8deg); }
+    96%  { transform: rotate(8deg); }
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+    letter-spacing: 0.5px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin-top: 3px;
+  }
+
+  /* HUD */
+  .hud {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    padding: 5px 14px;
+    border-radius: 99px;
+  }
+
+  .badge-score {
+    background: var(--primary-light);
+    border: 2px solid var(--primary);
+    color: var(--primary-dark);
+  }
+
+  .badge-progress {
+    background: #FFF;
+    border: 2px solid #DDB870;
+    color: var(--text-soft);
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%;
+    max-width: 520px;
+    background: #EDD9A3;
+    border-radius: 99px;
+    height: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Question card */
+  .question-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px 14px;
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 14px;
+    border: 2px solid #F4D88A;
+  }
+
+  .q-number {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+
+  .q-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+
+  /* Options */
+  .options-wrap {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+
+  .option-btn {
+    width: 100%;
+    background: white;
+    border: 2.5px solid #DDB870;
+    border-radius: 14px;
+    padding: 11px 16px;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    line-height: 1.4;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244,162,37,0.2);
+  }
+
+  .option-label {
+    min-width: 24px;
+    height: 24px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.8rem;
+    color: var(--primary-dark);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .option-btn.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct-border);
+    color: var(--correct);
+  }
+
+  .option-btn.correct .option-label {
+    background: var(--correct);
+    color: white;
+  }
+
+  .option-btn.wrong {
+    background: var(--wrong-bg);
+    border-color: var(--wrong-border);
+    color: var(--wrong);
+  }
+
+  .option-btn.wrong .option-label {
+    background: var(--wrong);
+    color: white;
+  }
+
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  /* Feedback */
+  .feedback {
+    width: 100%;
+    max-width: 520px;
+    border-radius: 14px;
+    padding: 10px 16px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .feedback.correct {
+    background: var(--correct-bg);
+    border: 2px solid var(--correct-border);
+    color: var(--correct);
+    display: block;
+  }
+
+  .feedback.wrong {
+    background: var(--wrong-bg);
+    border: 2px solid var(--wrong-border);
+    color: var(--wrong);
+    display: block;
+  }
+
+  /* Next button */
+  .btn-next {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 4px 0 var(--primary-dark);
+    padding: 12px 36px;
+    font-size: 1rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+    display: none;
+  }
+
+  .btn-next.show { display: inline-block; }
+  .btn-next:active { transform: scale(0.97); }
+  .btn-next:hover { filter: brightness(1.07); }
+
+  /* Win screen */
+  .win-screen {
+    display: none;
+    text-align: center;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 520px;
+    border: 2px solid #F4D88A;
+  }
+
+  .win-screen.show { display: block; }
+
+  .win-emoji {
+    font-size: 60px;
+    display: block;
+    animation: pop 0.5s ease;
+    margin-bottom: 8px;
+  }
+
+  @keyframes pop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .win-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+  }
+
+  .win-sub {
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+  }
+
+  .final-score {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .score-breakdown {
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 22px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .score-breakdown span {
+    color: var(--primary-dark);
+    font-weight: 900;
+  }
+
+  .btn-restart {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 4px 0 var(--primary-dark);
+    padding: 13px 32px;
+    font-size: 1rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+  }
+
+  .btn-restart:active { transform: scale(0.97); }
+  .btn-restart:hover { filter: brightness(1.07); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="game-emoji">☪️</span>
+  <h1>Kuis Juz Amma</h1>
+  <p class="subtitle">Level Medium · 10 Soal</p>
+</header>
+
+<div class="hud">
+  <div class="badge badge-score">⭐ Skor: <span id="score">0</span></div>
+  <div class="badge badge-progress">📖 Soal <span id="q-current">1</span> / <span id="q-total">10</span></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progress-bar"></div>
+</div>
+
+<div class="question-card" id="question-card">
+  <div class="q-number" id="q-number">Soal 1</div>
+  <div class="q-text" id="q-text"></div>
+</div>
+
+<div class="options-wrap" id="options-wrap"></div>
+
+<div class="feedback" id="feedback"></div>
+
+<button class="btn-next" id="btn-next" onclick="nextQuestion()">Soal Berikutnya ➜</button>
+
+<div class="win-screen" id="win-screen">
+  <span class="win-emoji">🌙</span>
+  <div class="win-title">Kuis Selesai!</div>
+  <div class="win-sub">Semoga ilmunya bermanfaat 🤲</div>
+  <div class="final-score" id="final-score">0</div>
+  <div class="score-label">dari 100 poin</div>
+  <div class="score-breakdown">
+    Jawaban benar: <span id="correct-count">0</span> dari 10 soal
+  </div>
+  <button class="btn-restart" onclick="restartGame()">🔁 Main Lagi</button>
+</div>
+
+<script>
+const allQuestions = [
+  {
+    q: "Manakah yang merupakan terjemahan dari Surah At-Takatsur ayat 1-2?",
+    options: [
+      "Demi masa, sungguh manusia berada dalam kerugian",
+      "Bermegah-megahan telah melalaikan kamu, sampai kamu masuk ke dalam kubur",
+      "Celakalah bagi setiap pengumpat dan pencela, yang mengumpulkan harta dan menghitung-hitungnya"
+    ],
+    correct: 1,
+    feedback: "At-Takatsur ayat 1-2 berbunyi: \"Bermegah-megahan telah melalaikan kamu, sampai kamu masuk ke dalam kubur.\""
+  },
+  {
+    q: "Surah Al-Ma'un ayat 2 menyebutkan salah satu perbuatan buruk, yaitu …",
+    options: [
+      "Mencela anak yatim",
+      "Berbohong",
+      "Riya (pamer)"
+    ],
+    correct: 0,
+    feedback: "Al-Ma'un ayat 2 menyebut orang yang menghardik (mencela) anak yatim sebagai orang yang mendustakan agama."
+  },
+  {
+    q: "Surah apa yang menjelaskan tentang kemurnian keesaan Allah?",
+    options: [
+      "Al-Kautsar",
+      "An-Nasr",
+      "Al-Ikhlash"
+    ],
+    correct: 2,
+    feedback: "Al-Ikhlash adalah surah yang menjelaskan tentang keesaan dan kemurnian Allah. Artinya pun \"Kemurnian\"."
+  },
+  {
+    q: "Di dalam Surah Al-Qadr ayat 3, Lailatul Qadr itu lebih baik dari …",
+    options: [
+      "Seribu bulan",
+      "Seribu hari",
+      "Sepuluh tahun"
+    ],
+    correct: 0,
+    feedback: "Al-Qadr ayat 3 menyatakan bahwa Lailatul Qadr lebih baik dari seribu bulan."
+  },
+  {
+    q: "Di dalam Surah At-Tin, terdapat ayat yang berarti \"Sungguh, Kami telah menciptakan manusia dalam bentuk yang sebaik-baiknya\". Ayat berapakah itu?",
+    options: [
+      "Ayat 3",
+      "Ayat 4",
+      "Ayat 5"
+    ],
+    correct: 1,
+    feedback: "At-Tin ayat 4 berbunyi: \"Sungguh, Kami telah menciptakan manusia dalam bentuk yang sebaik-baiknya.\""
+  },
+  {
+    q: "Apa terjemahan dari Surah Al-'Alaq ayat 1?",
+    options: [
+      "Bacalah, dengan (menyebut) nama Tuhanmu yang menciptakan",
+      "Bukankah Allah adalah hakim yang paling adil?",
+      "Bacalah, dan Tuhanmu Yang Maha Mulia"
+    ],
+    correct: 0,
+    feedback: "Al-'Alaq ayat 1: \"Iqra' bismi rabbikal-ladzi khalaq\" — Bacalah, dengan (menyebut) nama Tuhanmu yang menciptakan."
+  },
+  {
+    q: "Manakah ayat yang menyebutkan bahwa \"bersama kesulitan, ada kemudahan\"?",
+    options: [
+      "Ad-Dhuha ayat 9-11",
+      "Al-'Alaq ayat 1-5",
+      "Al-Insyirah ayat 5-6"
+    ],
+    correct: 2,
+    feedback: "Al-Insyirah ayat 5-6 berbunyi: \"Fa-inna ma'al-'usri yusra, inna ma'al-'usri yusra\" — Sesungguhnya bersama kesulitan ada kemudahan."
+  },
+  {
+    q: "Manakah yang merupakan isi kandungan Surah Ad-Dhuha?",
+    options: [
+      "Allah menghibur hati Nabi Muhammad",
+      "Akhlak mulia untuk bersyukur dan berbuat baik pada orang lain",
+      "a dan b benar"
+    ],
+    correct: 2,
+    feedback: "Ad-Dhuha mengandung dua hal: Allah menghibur Nabi Muhammad dan perintah untuk bersyukur serta berbuat baik kepada orang lain.",
+    noShuffle: true
+  },
+  {
+    q: "Dalam Surah Al-Muthaffifin, disebutkan ada sijjin dan 'illiyyiin. Apa itu sijjin?",
+    options: [
+      "Kitab catatan amal orang-orang durhaka",
+      "Kitab catatan amal orang-orang baik",
+      "Kitab catatan amal seluruh makhluk"
+    ],
+    correct: 0,
+    feedback: "Sijjin adalah kitab catatan amal orang-orang durhaka/jahat. Lawannya adalah 'Illiyyiin, kitab catatan amal orang-orang yang beriman."
+  },
+  {
+    q: "Berikut ini adalah terjemahan 4 ayat terakhir dari sebuah surah:\n\n• Wahai jiwa yang tenang\n• Kembalilah kepada Tuhanmu dengan hati yang ridho dan diridhoi-Nya\n• Maka masuklah ke dalam golongan hamba-hamba-Ku\n• Dan masuklah ke dalam surga-Ku\n\nApa nama surah tersebut?",
+    options: [
+      "Al-Balad",
+      "At-Thariq",
+      "Al-Fajr"
+    ],
+    correct: 2,
+    feedback: "Ayat-ayat tersebut adalah Al-Fajr ayat 27-30. Surah Al-Fajr artinya \"Waktu Fajar\".",
+    noShuffle: true
+  }
+];
+
+// Score table: index = jumlah benar (0-10)
+const scoreTable = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+let questions = [];
+let currentIndex = 0;
+let correctCount = 0;
+let answered = false;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+  questions = shuffle(allQuestions);
+  currentIndex = 0;
+  correctCount = 0;
+  answered = false;
+
+  document.getElementById('score').textContent = 0;
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('question-card').style.display = '';
+  document.getElementById('options-wrap').style.display = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-next').classList.remove('show');
+  updateProgress();
+  renderQuestion();
+}
+
+function updateProgress() {
+  const pct = (currentIndex / questions.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('q-current').textContent = currentIndex + 1;
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('q-number').textContent = `Soal ${currentIndex + 1}`;
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[currentIndex];
+  document.getElementById('q-text').textContent = q.q;
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+
+  const labels = ['A', 'B', 'C'];
+
+  // Shuffle options but keep track of which is correct
+  const indexed = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+  const shuffled = q.noShuffle ? indexed : shuffle(indexed);
+
+  shuffled.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.dataset.correct = opt.isCorrect;
+    btn.addEventListener('click', () => handleAnswer(btn, opt.isCorrect, q.feedback, q.options[q.correct], shuffled));
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-next').classList.remove('show');
+}
+
+function handleAnswer(clickedBtn, isCorrect, feedbackText, correctText, shuffled) {
+  if (answered) return;
+  answered = true;
+
+  const allBtns = document.querySelectorAll('.option-btn');
+
+  allBtns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.correct === 'true') {
+      btn.classList.add('correct');
+    }
+  });
+
+  const feedback = document.getElementById('feedback');
+
+  if (isCorrect) {
+    clickedBtn.classList.add('correct');
+    correctCount++;
+    const newScore = scoreTable[correctCount];
+    document.getElementById('score').textContent = newScore;
+    feedback.className = 'feedback correct';
+    feedback.textContent = `✅ Benar! ${feedbackText}`;
+  } else {
+    clickedBtn.classList.add('wrong');
+    feedback.className = 'feedback wrong';
+    feedback.textContent = `❌ Belum tepat. Jawaban yang benar: "${correctText}". ${feedbackText}`;
+  }
+
+  const btnNext = document.getElementById('btn-next');
+  if (currentIndex < questions.length - 1) {
+    btnNext.textContent = 'Soal Berikutnya ➜';
+  } else {
+    btnNext.textContent = 'Lihat Hasil 🏁';
+  }
+  btnNext.classList.add('show');
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= questions.length) {
+    showWin();
+  } else {
+    updateProgress();
+    renderQuestion();
+  }
+}
+
+function showWin() {
+  document.getElementById('question-card').style.display = 'none';
+  document.getElementById('options-wrap').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-next').classList.remove('show');
+
+  const finalScore = scoreTable[correctCount];
+  document.getElementById('progress-bar').style.width = '100%';
+
+  const win = document.getElementById('win-screen');
+  win.classList.add('show');
+  document.getElementById('final-score').textContent = finalScore;
+  document.getElementById('correct-count').textContent = correctCount;
+
+  // Change emoji based on score
+  const emoji = finalScore === 100 ? '🏆' : finalScore >= 70 ? '🌙' : finalScore >= 40 ? '⭐' : '📖';
+  win.querySelector('.win-emoji').textContent = emoji;
+}
+
+function restartGame() {
+  startGame();
+}
+
+startGame();
+</script>
+</body>
+</html>
