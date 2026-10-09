@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kartu Memori – Juz Amma</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --primary: #F4A225;
+    --primary-dark: #C97D0A;
+    --green: #3DBD7D;
+    --green-dark: #2A9060;
+    --green-light: #D6F5E7;
+    --teal: #1BB8A3;
+    --purple: #8B5CF6;
+    --purple-light: #EDE9FE;
+    --red: #F44336;
+    --red-light: #FFEBEE;
+    --card-surah: #FFFFFF;
+    --card-arti: #FFFBF0;
+    --card-back: #F4A225;
+    --text: #2D2014;
+    --text-soft: #7A6040;
+    --shadow: 0 4px 16px rgba(244,162,37,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { overflow-x: hidden; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px 28px;
+    background-image: radial-gradient(circle at 20% 20%, #FFE0A0 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, #C8F5E8 0%, transparent 50%);
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .game-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--primary-dark);
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  .game-sub {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-top: 3px;
+  }
+
+  /* HUD */
+  .hud {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 5px 14px;
+    border-radius: 99px;
+  }
+
+  .badge-ronde {
+    background: var(--purple-light);
+    border: 2px solid var(--purple);
+    color: var(--purple);
+  }
+
+  .badge-pasang {
+    background: var(--green-light);
+    border: 2px solid var(--green);
+    color: var(--green-dark);
+  }
+
+  .badge-langkah {
+    background: #FFF3CD;
+    border: 2px solid var(--primary);
+    color: var(--primary-dark);
+  }
+
+  /* Instruction */
+  .instruction {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-align: center;
+    margin-bottom: 14px;
+    background: white;
+    border-radius: 10px;
+    padding: 6px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  /* Card grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 16px;
+  }
+
+  /* Flip card */
+  .flip-card {
+    aspect-ratio: 3/4;
+    perspective: 800px;
+    cursor: pointer;
+  }
+
+  .flip-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease;
+    border-radius: 14px;
+  }
+
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-card.matched .flip-inner { transform: rotateY(180deg); }
+
+  .flip-front, .flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+  }
+
+  /* Card back (tutup) */
+  .flip-front {
+    background: linear-gradient(135deg, var(--primary), #F9C74F);
+    box-shadow: 0 4px 0 var(--primary-dark);
+  }
+
+  .flip-front-icon {
+    font-size: 1.6rem;
+    opacity: 0.9;
+  }
+
+  /* Card face */
+  .flip-back {
+    transform: rotateY(180deg);
+    flex-direction: column;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .flip-back.type-surah {
+    background: #E8F4FF;
+    border: 2.5px solid #90CAF9;
+  }
+
+  .flip-back.type-arti {
+    background: #FFF0D4;
+    border: 2.5px solid var(--primary);
+  }
+
+  .card-type-label {
+    font-size: 0.55rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    opacity: 0.6;
+  }
+
+  .type-surah .card-type-label { color: #1565C0; }
+  .type-arti .card-type-label { color: var(--primary-dark); }
+
+  .card-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(0.7rem, 2.5vw, 0.95rem);
+    line-height: 1.2;
+  }
+
+  .type-surah .card-text { color: #1565C0; }
+  .type-arti .card-text { color: var(--primary-dark); }
+
+  /* Matched state */
+  .flip-card.matched .flip-back {
+    background: var(--green-light) !important;
+    border-color: var(--green) !important;
+    animation: matchPop 0.3s ease;
+  }
+
+  .flip-card.matched .card-text,
+  .flip-card.matched .card-type-label { color: var(--green-dark) !important; }
+
+  @keyframes matchPop {
+    0% { transform: rotateY(180deg) scale(1); }
+    50% { transform: rotateY(180deg) scale(1.08); }
+    100% { transform: rotateY(180deg) scale(1); }
+  }
+
+  /* Wrong flash */
+  .flip-card.wrong .flip-back {
+    background: var(--red-light) !important;
+    border-color: var(--red) !important;
+    animation: wrongShake 0.4s ease;
+  }
+
+  @keyframes wrongShake {
+    0%, 100% { transform: rotateY(180deg) translateX(0); }
+    25% { transform: rotateY(180deg) translateX(-4px); }
+    75% { transform: rotateY(180deg) translateX(4px); }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: white;
+    border-radius: 14px;
+    padding: 10px 22px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.correct { color: var(--green-dark); border: 2px solid var(--green); }
+  .toast.wrong { color: var(--red); border: 2px solid var(--red); }
+
+  /* Ronde clear screen */
+  .ronde-screen {
+    display: none;
+    text-align: center;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 16px;
+  }
+
+  .ronde-screen.show { display: block; }
+
+  .ronde-emoji {
+    font-size: 52px;
+    display: block;
+    animation: pop 0.4s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .ronde-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+    margin: 10px 0 6px;
+  }
+
+  .ronde-sub {
+    color: var(--text-soft);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .btn-lanjut {
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    color: white;
+    box-shadow: 0 4px 0 #1A6644;
+    padding: 12px 32px;
+    font-size: 1rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-lanjut:active { transform: scale(0.97); }
+
+  /* Win screen */
+  .win-screen {
+    display: none;
+    text-align: center;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .win-screen.show { display: block; }
+
+  .win-emoji {
+    font-size: 60px;
+    display: block;
+    animation: pop 0.5s ease;
+  }
+
+  .win-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--primary-dark);
+    margin: 10px 0 4px;
+  }
+
+  .win-sub {
+    color: var(--text-soft);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .stat-box {
+    background: #FFF8EC;
+    border: 2px solid var(--primary);
+    border-radius: 14px;
+    padding: 12px 18px;
+    min-width: 90px;
+  }
+
+  .stat-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--primary-dark);
+    display: block;
+  }
+
+  .stat-lbl {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-restart {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #8A5200;
+    padding: 12px 32px;
+    font-size: 1rem;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-restart:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="game-title">🃏 Kartu Memori</div>
+  <div class="game-sub">Juz Amma — Nama & Arti Surah</div>
+</header>
+
+<div class="hud">
+  <div class="badge badge-ronde">📖 Ronde <span id="ronde-num">1</span> dari 2</div>
+  <div class="badge badge-pasang">✅ <span id="pasang-count">0</span> / 5 pasang</div>
+  <div class="badge badge-langkah">👆 <span id="langkah-count">0</span> langkah</div>
+</div>
+
+<div class="instruction">Balik dua kartu — cocokkan nama surah dengan artinya!</div>
+
+<div class="card-grid" id="card-grid"></div>
+
+<div class="ronde-screen" id="ronde-screen">
+  <span class="ronde-emoji">🌟</span>
+  <div class="ronde-title">Ronde 1 Selesai!</div>
+  <div class="ronde-sub" id="ronde-sub">Hebat! Siap lanjut ke ronde berikutnya?</div>
+  <button class="btn-lanjut" onclick="startRonde(2)">Lanjut Ronde 2 →</button>
+</div>
+
+<div class="win-screen" id="win-screen">
+  <span class="win-emoji">🏆</span>
+  <div class="win-title">Kamu Hebat!</div>
+  <div class="win-sub">Semua surah berhasil dipasangkan!</div>
+  <div class="stats">
+    <div class="stat-box">
+      <span class="stat-num" id="total-langkah">0</span>
+      <span class="stat-lbl">Total Langkah</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="total-pasang">10</span>
+      <span class="stat-lbl">Pasang Cocok</span>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restartGame()">🔁 Main Lagi</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const rondeData = [
+  [
+    { surah: "Al-Fil",   arti: "Gajah" },
+    { surah: "At-Tin",   arti: "Buah Tin" },
+    { surah: "Ad-Dhuha", arti: "Waktu Dhuha" },
+    { surah: "Al-Fajr",  arti: "Waktu Fajar" },
+    { surah: "An-Nas",   arti: "Manusia" },
+  ],
+  [
+    { surah: "An-Naba'", arti: "Berita Besar" },
+    { surah: "Al-Balad", arti: "Negeri" },
+    { surah: "As-Syams", arti: "Matahari" },
+    { surah: "Al-Lail",  arti: "Waktu Malam" },
+    { surah: "Al-Ma'un", arti: "Bantuan" },
+  ]
+];
+
+let currentRonde = 1;
+let flipped = [];
+let matched = 0;
+let langkah = 0;
+let totalLangkah = 0;
+let isChecking = false;
+let toastTimer = null;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startRonde(ronde) {
+  currentRonde = ronde;
+  flipped = [];
+  matched = 0;
+  langkah = 0;
+  isChecking = false;
+
+  document.getElementById('ronde-screen').classList.remove('show');
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('ronde-num').textContent = ronde;
+  document.getElementById('pasang-count').textContent = 0;
+  document.getElementById('langkah-count').textContent = 0;
+
+  const pairs = rondeData[ronde - 1];
+  const cards = [];
+
+  pairs.forEach((pair, i) => {
+    cards.push({ id: i, type: 'surah', text: pair.surah });
+    cards.push({ id: i, type: 'arti',  text: pair.arti  });
+  });
+
+  const shuffled = shuffle(cards);
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = '';
+
+  shuffled.forEach((card, idx) => {
+    const fc = document.createElement('div');
+    fc.className = 'flip-card';
+    fc.dataset.id = card.id;
+    fc.dataset.type = card.type;
+    fc.dataset.idx = idx;
+
+    fc.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-front">
+          <span class="flip-front-icon">☪️</span>
+        </div>
+        <div class="flip-back type-${card.type}">
+          <span class="card-type-label">${card.type === 'surah' ? 'Nama Surah' : 'Artinya'}</span>
+          <span class="card-text">${card.text}</span>
+        </div>
+      </div>
+    `;
+
+    fc.addEventListener('click', () => flipCard(fc));
+    grid.appendChild(fc);
+  });
+}
+
+function flipCard(card) {
+  if (isChecking) return;
+  if (card.classList.contains('flipped')) return;
+  if (card.classList.contains('matched')) return;
+  if (flipped.length === 2) return;
+
+  card.classList.add('flipped');
+  flipped.push(card);
+
+  if (flipped.length === 2) {
+    langkah++;
+    totalLangkah++;
+    document.getElementById('langkah-count').textContent = langkah;
+    isChecking = true;
+    setTimeout(checkMatch, 700);
+  }
+}
+
+function checkMatch() {
+  const [a, b] = flipped;
+  const sameId   = a.dataset.id === b.dataset.id;
+  const diffType = a.dataset.type !== b.dataset.type;
+
+  if (sameId && diffType) {
+    a.classList.add('matched');
+    b.classList.add('matched');
+    matched++;
+    document.getElementById('pasang-count').textContent = matched;
+    showToast('Cocok! 🎉', 'correct');
+
+    flipped = [];
+    isChecking = false;
+
+    if (matched === 5) {
+      setTimeout(() => {
+        if (currentRonde === 1) showRondeClear();
+        else showWin();
+      }, 600);
+    }
+  } else {
+    a.classList.add('wrong');
+    b.classList.add('wrong');
+    showToast('Belum cocok, coba lagi! 💪', 'wrong');
+
+    setTimeout(() => {
+      a.classList.remove('flipped', 'wrong');
+      b.classList.remove('flipped', 'wrong');
+      flipped = [];
+      isChecking = false;
+    }, 700);
+  }
+}
+
+function showRondeClear() {
+  document.getElementById('card-grid').innerHTML = '';
+  document.getElementById('ronde-screen').classList.add('show');
+  document.getElementById('ronde-sub').textContent = `Kamu butuh ${langkah} langkah. Siap lanjut ke ronde berikutnya?`;
+}
+
+function showWin() {
+  document.getElementById('card-grid').innerHTML = '';
+  document.getElementById('total-langkah').textContent = totalLangkah;
+  document.getElementById('win-screen').classList.add('show');
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+}
+
+function restartGame() {
+  totalLangkah = 0;
+  document.getElementById('win-screen').classList.remove('show');
+  startRonde(1);
+}
+
+startRonde(1);
+</script>
+</body>
+</html>
