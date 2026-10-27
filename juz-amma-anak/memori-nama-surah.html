@@ -434,6 +434,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const bgmPembuka = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_pembuka_game.mp3");
+bgmPembuka.loop = true;
+const bgmPenutup = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_penutup_game.mp3");
+const sfxPop  = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_buka_kartu_juz_amma.mp3");
+const sfxDing = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_benar_kartu.mp3");
+let bgmPembukaPlayed = false;
+// ─────────────────────────────────────────────────────────────────────────────
+
 const rondeData = [
   [
     { surah: "Al-Fil",   arti: "Gajah" },
@@ -469,6 +478,9 @@ function startRonde(ronde) {
   matched = 0;
   langkah = 0;
   isChecking = false;
+  bgmPembukaPlayed = false;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 
   document.getElementById('ronde-screen').classList.remove('show');
   document.getElementById('win-screen').classList.remove('show');
@@ -518,6 +530,15 @@ function flipCard(card) {
   if (card.classList.contains('matched')) return;
   if (flipped.length === 2) return;
 
+  // Hentikan BGM pembuka saat kartu pertama diklik
+  if (!bgmPembukaPlayed) {
+    bgmPembukaPlayed = true;
+    bgmPembuka.pause();
+  }
+
+  sfxPop.currentTime = 0;
+  sfxPop.play().catch(() => {});
+
   card.classList.add('flipped');
   flipped.push(card);
 
@@ -540,6 +561,8 @@ function checkMatch() {
     b.classList.add('matched');
     matched++;
     document.getElementById('pasang-count').textContent = matched;
+    sfxDing.currentTime = 0;
+    sfxDing.play().catch(() => {});
     showToast('Cocok! 🎉', 'correct');
 
     flipped = [];
@@ -575,6 +598,8 @@ function showWin() {
   document.getElementById('card-grid').innerHTML = '';
   document.getElementById('total-langkah').textContent = totalLangkah;
   document.getElementById('win-screen').classList.add('show');
+  bgmPenutup.currentTime = 0;
+  bgmPenutup.play().catch(() => {});
 }
 
 function showToast(msg, type) {
@@ -587,6 +612,8 @@ function showToast(msg, type) {
 
 function restartGame() {
   totalLangkah = 0;
+  bgmPenutup.pause();
+  bgmPenutup.currentTime = 0;
   document.getElementById('win-screen').classList.remove('show');
   startRonde(1);
 }
