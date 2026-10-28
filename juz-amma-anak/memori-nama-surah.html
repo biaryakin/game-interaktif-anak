@@ -388,9 +388,66 @@
   }
 
   .btn-restart:active { transform: scale(0.97); }
+
+  /* Layar Mulai */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .start-overlay.hide { display: none; }
+
+  .start-emoji {
+    font-size: 64px;
+    animation: pop 0.5s ease;
+  }
+
+  .start-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #8A5200;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
+
+<div class="start-overlay" id="start-overlay">
+  <span class="start-emoji">🃏</span>
+  <div class="start-title">Kartu Memori</div>
+  <div class="start-sub">Juz Amma — Nama & Arti Surah</div>
+  <button class="btn-start" onclick="startGameFromOverlay()">▶ Mulai</button>
+</div>
 
 <header>
   <div class="game-title">🃏 Kartu Memori</div>
@@ -608,6 +665,15 @@ function showToast(msg, type) {
   toast.className = `toast show ${type}`;
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+}
+
+// Dipanggil dari tombol Mulai. Klik ini adalah interaksi pengguna,
+// sehingga browser mengizinkan BGM pembuka untuk diputar.
+function startGameFromOverlay() {
+  document.getElementById('start-overlay').classList.add('hide');
+  bgmPembukaPlayed = false;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 }
 
 function restartGame() {
