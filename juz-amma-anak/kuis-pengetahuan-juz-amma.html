@@ -365,9 +365,65 @@
 
   .btn-restart:active { transform: scale(0.97); }
   .btn-restart:hover { filter: brightness(1.07); }
+  /* Layar Mulai */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .start-overlay.hide { display: none; }
+
+  .start-emoji {
+    font-size: 64px;
+    animation: pop 0.5s ease;
+  }
+
+  .start-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 4px 0 var(--primary-dark);
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
+
+<div class="start-overlay" id="start-overlay">
+  <span class="start-emoji">☪️</span>
+  <div class="start-title">Kuis Juz Amma</div>
+  <div class="start-sub">Level Medium · 10 Soal</div>
+  <button class="btn-start" onclick="startGameFromOverlay()">▶ Mulai</button>
+</div>
 
 <header>
   <span class="game-emoji">☪️</span>
@@ -408,6 +464,14 @@
 </div>
 
 <script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const bgmPembuka = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_pembuka_game.mp3");
+bgmPembuka.loop = true;
+const bgmPenutup = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_penutup_game.mp3");
+const sfxYay   = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_benar_kuis.mp3");
+const sfxGagal = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_salah.mp3");
+// ─────────────────────────────────────────────────────────────────────────────
+
 const allQuestions = [
   {
     q: "Manakah yang merupakan terjemahan dari Surah At-Takatsur ayat 1-2?",
@@ -531,6 +595,11 @@ function startGame() {
   correctCount = 0;
   answered = false;
 
+  bgmPenutup.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
+
   document.getElementById('score').textContent = 0;
   document.getElementById('win-screen').classList.remove('show');
   document.getElementById('question-card').style.display = '';
@@ -580,6 +649,9 @@ function handleAnswer(clickedBtn, isCorrect, feedbackText, correctText, shuffled
   if (answered) return;
   answered = true;
 
+  // Hentikan BGM pembuka saat jawaban dipilih
+  bgmPembuka.pause();
+
   const allBtns = document.querySelectorAll('.option-btn');
 
   allBtns.forEach(btn => {
@@ -598,10 +670,14 @@ function handleAnswer(clickedBtn, isCorrect, feedbackText, correctText, shuffled
     document.getElementById('score').textContent = newScore;
     feedback.className = 'feedback correct';
     feedback.textContent = `✅ Benar! ${feedbackText}`;
+    sfxYay.currentTime = 0;
+    sfxYay.play().catch(() => {});
   } else {
     clickedBtn.classList.add('wrong');
     feedback.className = 'feedback wrong';
     feedback.textContent = `❌ Belum tepat. Jawaban yang benar: "${correctText}". ${feedbackText}`;
+    sfxGagal.currentTime = 0;
+    sfxGagal.play().catch(() => {});
   }
 
   const btnNext = document.getElementById('btn-next');
@@ -637,9 +713,20 @@ function showWin() {
   document.getElementById('final-score').textContent = finalScore;
   document.getElementById('correct-count').textContent = correctCount;
 
+  bgmPenutup.currentTime = 0;
+  bgmPenutup.play().catch(() => {});
+
   // Change emoji based on score
   const emoji = finalScore === 100 ? '🏆' : finalScore >= 70 ? '🌙' : finalScore >= 40 ? '⭐' : '📖';
   win.querySelector('.win-emoji').textContent = emoji;
+}
+
+// Dipanggil dari tombol Mulai. Klik ini adalah interaksi pengguna,
+// sehingga browser mengizinkan BGM pembuka untuk diputar.
+function startGameFromOverlay() {
+  document.getElementById('start-overlay').classList.add('hide');
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 }
 
 function restartGame() {
