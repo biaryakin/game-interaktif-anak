@@ -312,9 +312,66 @@
 
   .btn-restart:active { transform: scale(0.97); }
   .btn-restart:hover { filter: brightness(1.07); }
+
+  /* Layar Mulai */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .start-overlay.hide { display: none; }
+
+  .start-emoji {
+    font-size: 64px;
+    animation: pop 0.5s ease;
+  }
+
+  .start-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #0E5C39;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
+
+<div class="start-overlay" id="start-overlay">
+  <span class="start-emoji">🔗</span>
+  <div class="start-title">Pasangkan!</div>
+  <div class="start-sub">Tema: Tubuh Manusia</div>
+  <button class="btn-start" onclick="startGameFromOverlay()">▶ Mulai</button>
+</div>
 
 <header>
   <span class="game-emoji">🔗</span>
@@ -351,6 +408,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const bgmPembuka = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_pembuka_game.mp3");
+bgmPembuka.loop = true;
+const bgmPenutup = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_penutup_game.mp3");
+const sfxPop  = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_buka_kartu_juz_amma.mp3");
+const sfxDing = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_benar_kartu.mp3");
+// ─────────────────────────────────────────────────────────────────────────────
+
 const pairs = [
   { organ: "Otak",      func: "Berpikir" },
   { organ: "Mata",      func: "Melihat" },
@@ -379,6 +444,12 @@ function startGame() {
   score = 0;
   selectedOrgan = null;
   selectedFunc = null;
+
+  // BGM pembuka terus berputar sampai game selesai (showWin)
+  bgmPenutup.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 
   document.getElementById('score').textContent = 0;
   document.getElementById('matched-count').textContent = 0;
@@ -418,6 +489,9 @@ function startGame() {
 function handleClick(el, type) {
   if (el.classList.contains('matched')) return;
 
+  sfxPop.currentTime = 0;
+  sfxPop.play().catch(() => {});
+
   if (type === 'organ') {
     // Deselect previous organ
     if (selectedOrgan) selectedOrgan.classList.remove('selected-organ');
@@ -452,6 +526,9 @@ function checkMatch() {
     score += 10;
     document.getElementById('score').textContent = score;
     document.getElementById('matched-count').textContent = matchedCount;
+
+    sfxDing.currentTime = 0;
+    sfxDing.play().catch(() => {});
 
     showToast('Benar! 🎉', 'correct');
 
@@ -497,6 +574,18 @@ function showWin() {
   const pct = Math.round((score / (pairs.length * 10)) * 100);
   const emoji = pct === 100 ? '🏆' : '🥈';
   document.getElementById('final-score').textContent = `${emoji} ${score} poin`;
+
+  bgmPembuka.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPenutup.play().catch(() => {});
+}
+
+// Dipanggil dari tombol Mulai. Klik ini adalah interaksi pengguna,
+// sehingga browser mengizinkan BGM pembuka untuk diputar.
+function startGameFromOverlay() {
+  document.getElementById('start-overlay').classList.add('hide');
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 }
 
 function restartGame() {
