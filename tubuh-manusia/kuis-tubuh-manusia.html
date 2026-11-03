@@ -358,9 +358,66 @@
   }
 
   .btn-restart:active { transform: scale(0.97); }
+
+  /* Layar Mulai */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .start-overlay.hide { display: none; }
+
+  .start-emoji {
+    font-size: 64px;
+    animation: pop 0.5s ease;
+  }
+
+  .start-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #3B0764;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
+
+<div class="start-overlay" id="start-overlay">
+  <span class="start-emoji">🧠</span>
+  <div class="start-title">Kuis Tubuh Manusia</div>
+  <div class="start-sub">Uji pengetahuanmu tentang tubuh!</div>
+  <button class="btn-start" onclick="startGameFromOverlay()">▶ Mulai</button>
+</div>
 
 <header>
   <span class="game-emoji">🧠</span>
@@ -409,6 +466,14 @@
 </div>
 
 <script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const bgmPembuka = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_pembuka_game.mp3");
+bgmPembuka.loop = true;
+const bgmPenutup = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_penutup_game.mp3");
+const sfxDing  = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_benar_kartu.mp3");
+const sfxGagal = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_salah.mp3");
+// ─────────────────────────────────────────────────────────────────────────────
+
 const questions = [
   {
     q: "Apa nama organ tubuh yang menghasilkan insulin (zat untuk mengubah gula menjadi energi tubuh)?",
@@ -526,6 +591,11 @@ function startGame() {
   wrongCount = 0;
   shuffled = shuffle(questions);
 
+  bgmPenutup.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
+
   document.getElementById('score').textContent = 0;
   document.getElementById('total-num').textContent = questions.length;
   document.getElementById('win-screen').classList.remove('show');
@@ -564,6 +634,9 @@ function selectAnswer(index, btn) {
   // Disable all
   allBtns.forEach(b => b.disabled = true);
 
+  // BGM pembuka berhenti setelah pemain memilih jawaban
+  bgmPembuka.pause();
+
   const fb = document.getElementById('feedback');
 
   if (index === q.correct) {
@@ -571,11 +644,15 @@ function selectAnswer(index, btn) {
     correctCount++;
     score = scoreTable[correctCount];
     document.getElementById('score').textContent = score;
+    sfxDing.currentTime = 0;
+    sfxDing.play().catch(() => {});
     fb.textContent = '✅ Benar! Kamu hebat!';
     fb.className = 'feedback show correct';
   } else {
     btn.classList.add('wrong');
     wrongCount++;
+    sfxGagal.currentTime = 0;
+    sfxGagal.play().catch(() => {});
     // Show correct answer
     allBtns[q.correct].classList.add('show-correct');
     fb.textContent = `❌ Belum tepat. Jawaban yang benar: ${labels[q.correct]}. ${q.options[q.correct]}`;
@@ -616,6 +693,18 @@ function showWin() {
 
   const win = document.getElementById('win-screen');
   win.classList.add('show');
+
+  bgmPembuka.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPenutup.play().catch(() => {});
+}
+
+// Dipanggil dari tombol Mulai. Klik ini adalah interaksi pengguna,
+// sehingga browser mengizinkan BGM pembuka untuk diputar.
+function startGameFromOverlay() {
+  document.getElementById('start-overlay').classList.add('hide');
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 }
 
 function restartGame() {
