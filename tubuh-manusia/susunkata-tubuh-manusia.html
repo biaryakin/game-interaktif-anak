@@ -358,9 +358,66 @@
   }
 
   .btn-restart:active { transform: scale(0.97); }
+
+  /* Layar Mulai */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .start-overlay.hide { display: none; }
+
+  .start-emoji {
+    font-size: 64px;
+    animation: pop 0.5s ease;
+  }
+
+  .start-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--primary-dark);
+  }
+
+  .start-sub {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 0 #1A5A9A;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-start:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
+
+<div class="start-overlay" id="start-overlay">
+  <span class="start-emoji">🧩</span>
+  <div class="start-title">Susun Kata</div>
+  <div class="start-sub">Tema: Tubuh Manusia</div>
+  <button class="btn-start" onclick="startGameFromOverlay()">▶ Mulai</button>
+</div>
 
 <header>
   <span class="game-emoji">🧩</span>
@@ -407,6 +464,20 @@
 </div>
 
 <script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const bgmPembuka = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_pembuka_game.mp3");
+bgmPembuka.loop = true;
+const bgmPenutup = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/bgm_penutup_game.mp3");
+const sfxPop   = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_buka_kartu_juz_amma.mp3");
+const sfxYay   = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_benar_kartu.mp3");
+const sfxGagal = new Audio("https://biaryakin.github.io/game-interaktif-anak/aset-audio/sfx_jawaban_salah.mp3");
+
+function playPop() {
+  sfxPop.currentTime = 0;
+  sfxPop.play().catch(() => {});
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const words = [
   { word: "JANTUNG", clue: "Organ yang memompa darah ke seluruh tubuh. Letaknya di dada dan berdetak terus-menerus." },
   { word: "OTAK",    clue: "Pusat kendali tubuh kita. Dipakai untuk berpikir, mengingat, dan merasakan." },
@@ -444,6 +515,12 @@ function startGame() {
   current = 0;
   score = 0;
   correctCount = 0;
+
+  bgmPenutup.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
+
   document.getElementById('score').textContent = score;
   document.getElementById('correct-count').textContent = '✅ 0 benar';
   document.getElementById('win-screen').classList.remove('show');
@@ -496,6 +573,10 @@ function pickLetter(poolIndex, letter, tile) {
   const q = shuffled[current];
   if (answer.length >= q.word.length) return;
 
+  // BGM pembuka berhenti setelah pemain mulai menyusun huruf
+  bgmPembuka.pause();
+  playPop();
+
   usedIndices.push(poolIndex);
   tile.classList.add('used');
 
@@ -510,6 +591,8 @@ function pickLetter(poolIndex, letter, tile) {
 
 function removeLetter(pos) {
   if (pos >= answer.length) return;
+
+  playPop();
 
   // Remove from this position onward (LIFO from this pos)
   const removed = answer.splice(pos);
@@ -569,9 +652,13 @@ function checkAnswer() {
     correctCount++;
     document.getElementById('score').textContent = score;
     document.getElementById('correct-count').textContent = `✅ ${correctCount} benar`;
+    sfxYay.currentTime = 0;
+    sfxYay.play().catch(() => {});
     showFeedback('Benar! Keren sekali! 🎉', 'correct');
     setTimeout(nextQuestion, 1400);
   } else {
+    sfxGagal.currentTime = 0;
+    sfxGagal.play().catch(() => {});
     showFeedback(`Belum tepat. Jawabannya: ${q.word} 💪`, 'wrong');
     setTimeout(nextQuestion, 2000);
   }
@@ -602,6 +689,18 @@ function showWinScreen() {
   document.getElementById('final-score').textContent = `${emoji} ${score} poin (${correctCount}/${words.length} benar)`;
   document.getElementById('progress-fill').style.width = '100%';
   document.getElementById('progress-text').textContent = `Selesai!`;
+
+  bgmPembuka.pause();
+  bgmPenutup.currentTime = 0;
+  bgmPenutup.play().catch(() => {});
+}
+
+// Dipanggil dari tombol Mulai. Klik ini adalah interaksi pengguna,
+// sehingga browser mengizinkan BGM pembuka untuk diputar.
+function startGameFromOverlay() {
+  document.getElementById('start-overlay').classList.add('hide');
+  bgmPembuka.currentTime = 0;
+  bgmPembuka.play().catch(() => {});
 }
 
 function restartGame() {
